@@ -5,6 +5,8 @@ import 'package:quote_vault/core/theme/app_theme.dart';
 import 'package:quote_vault/service_locator.dart' as di;
 import 'package:quote_vault/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:quote_vault/features/auth/presentation/pages/auth_wrapper.dart';
+import 'package:quote_vault/features/splash/presentation/pages/splash_page.dart';
+import 'package:quote_vault/features/onboarding/presentation/pages/onboarding_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,8 +23,30 @@ void main() async {
   runApp(const QuoteVaultApp());
 }
 
-class QuoteVaultApp extends StatelessWidget {
+class QuoteVaultApp extends StatefulWidget {
   const QuoteVaultApp({super.key});
+
+  @override
+  State<QuoteVaultApp> createState() => _QuoteVaultAppState();
+}
+
+class _QuoteVaultAppState extends State<QuoteVaultApp> {
+  bool _showSplash = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _hideSplashAfterDelay();
+  }
+
+  void _hideSplashAfterDelay() async {
+    await Future.delayed(const Duration(seconds: 3));
+    if (mounted) {
+      setState(() {
+        _showSplash = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +62,8 @@ class QuoteVaultApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
-        home: const AuthWrapper(),
+        home: _showSplash ? const SplashPage() : const AuthWrapper(),
+        routes: {'/onboarding': (context) => const OnboardingPage()},
       ),
     );
   }

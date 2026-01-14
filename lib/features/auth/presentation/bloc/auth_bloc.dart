@@ -78,6 +78,8 @@ class AuthError extends AuthState {
 
 class AuthPasswordResetSuccess extends AuthState {}
 
+class AuthSignUpSuccess extends AuthState {}
+
 // Bloc
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
@@ -150,7 +152,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
     result.fold(
       (failure) => emit(AuthError(failure.message)),
-      (user) => emit(AuthAuthenticated(user)),
+      (user) => emit(AuthSignUpSuccess()),
     );
   }
 
