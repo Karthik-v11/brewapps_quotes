@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quote_vault/features/quotes/domain/entities/quote_entity.dart';
+import 'package:quote_vault/features/quotes/presentation/bloc/favorites_bloc.dart';
+import 'package:quote_vault/features/home/presentation/pages/quote_detail_page.dart';
+import 'package:quote_vault/core/constants/app_strings.dart';
 
 class FavoritesContent extends StatefulWidget {
   const FavoritesContent({super.key});
@@ -11,96 +16,131 @@ class _FavoritesContentState extends State<FavoritesContent> {
   String _selectedFilter = 'All';
   final List<String> _filters = ['All', 'By Author', 'By Topic'];
 
-  final List<Map<String, String>> _favoriteQuotes = [
-    {
-      'text': 'The only way to do great work is to love what you do.',
-      'author': 'Steve Jobs',
-    },
-    {
-      'text':
-          'In three words I can sum up everything I’ve learned about life: it goes on.',
-      'author': 'Robert Frost',
-    },
-    {
-      'text':
-          'The future belongs to those who believe in the beauty of their dreams.',
-      'author': 'E. Roosevelt',
-    },
-    {
-      'text': 'Strive not to be a success, but rather to be of value.',
-      'author': 'A. Einstein',
-    },
-    {
-      'text': 'The mind is everything. What you think you become.',
-      'author': 'Buddha',
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
-    // Split quotes into two columns for pseudo-masonry effect
-    final leftColumnQuotes = <Map<String, String>>[];
-    final rightColumnQuotes = <Map<String, String>>[];
+    return BlocBuilder<FavoritesBloc, FavoritesState>(
+      builder: (context, state) {
+        final favorites = state.favorites;
 
-    for (var i = 0; i < _favoriteQuotes.length; i++) {
-      if (i % 2 == 0) {
-        leftColumnQuotes.add(_favoriteQuotes[i]);
-      } else {
-        rightColumnQuotes.add(_favoriteQuotes[i]);
-      }
-    }
+        return RefreshIndicator(
+          onRefresh: () async {
+            context.read<FavoritesBloc>().add(FetchFavoritesRequested());
+          },
+          child: SafeArea(
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Filters
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _filters
+                          .map((filter) => _buildFilterPill(filter))
+                          .toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(top: 20, bottom: 24),
-              child: Text(
-                'Favorites',
-                style: TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: -1,
-                ),
+                  if (favorites.isEmpty && !state.isLoading)
+                    Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 100),
+                        child: Text(
+                          AppStrings.noFavorites,
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.color?.withOpacity(0.5),
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    _buildFilteredContent(favorites),
+                  const SizedBox(height: 100), // Bottom padding
+                ],
               ),
             ),
-            // Filters
-            Row(
-              children: _filters
-                  .map((filter) => _buildFilterPill(filter))
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFilteredContent(List<QuoteEntity> favorites) {
+    if (_selectedFilter == 'All') {
+      // Masonry Layout
+      final leftColumnQuotes = <QuoteEntity>[];
+      final rightColumnQuotes = <QuoteEntity>[];
+
+      for (var i = 0; i < favorites.length; i++) {
+        if (i % 2 == 0) {
+          leftColumnQuotes.add(favorites[i]);
+        } else {
+          rightColumnQuotes.add(favorites[i]);
+        }
+      }
+
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              children: leftColumnQuotes
+                  .map((quote) => _buildFavoriteCard(quote))
                   .toList(),
             ),
-            const SizedBox(height: 32),
-            // Masonry-like Grid using Row of Columns
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    children: leftColumnQuotes
-                        .map((quote) => _buildFavoriteCard(quote))
-                        .toList(),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    children: rightColumnQuotes
-                        .map((quote) => _buildFavoriteCard(quote))
-                        .toList(),
-                  ),
-                ),
-              ],
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              children: rightColumnQuotes
+                  .map((quote) => _buildFavoriteCard(quote))
+                  .toList(),
             ),
-            const SizedBox(height: 100), // Bottom padding
-          ],
-        ),
-      ),
-    );
+          ),
+        ],
+      );
+    } else {
+      // Grouped Layout
+      final Map<String, List<QuoteEntity>> grouped = {};
+      for (var quote in favorites) {
+        final key = _selectedFilter == 'By Author'
+            ? quote.author
+            : quote.category;
+        grouped.putIfAbsent(key, () => []).add(quote);
+      }
+
+      final sortedKeys = grouped.keys.toList()..sort();
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: sortedKeys.map((key) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16, top: 8),
+                child: Text(
+                  key,
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.headlineSmall?.color,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              ...grouped[key]!.map((quote) => _buildFavoriteCard(quote)),
+              const SizedBox(height: 16),
+            ],
+          );
+        }).toList(),
+      );
+    }
   }
 
   Widget _buildFilterPill(String filter) {
@@ -113,13 +153,21 @@ class _FavoritesContentState extends State<FavoritesContent> {
         decoration: BoxDecoration(
           color: isSelected
               ? Colors.transparent
-              : const Color(0xFF1E2832).withOpacity(0.5),
+              : (Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF1E2832).withOpacity(0.5)
+                    : Colors.grey[300]),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
           filter,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white60,
+            color: isSelected
+                ? (Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : Colors.black)
+                : Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.color?.withOpacity(0.6),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             fontSize: 15,
           ),
@@ -128,57 +176,70 @@ class _FavoritesContentState extends State<FavoritesContent> {
     );
   }
 
-  Widget _buildFavoriteCard(Map<String, String> quote) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+  Widget _buildFavoriteCard(QuoteEntity quote) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => QuoteDetailPage(quote: quote),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            quote['text']!,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-              height: 1.4,
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Text(
-                  '— ${quote['author']!}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.4),
-                    fontWeight: FontWeight.w500,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              quote.content,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Text(
+                    '— ${quote.author}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.color?.withOpacity(0.4),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ),
-              Icon(
-                Icons.favorite_rounded,
-                size: 20,
-                color: Colors.white.withOpacity(0.15),
-              ),
-            ],
-          ),
-        ],
+                const Icon(
+                  Icons.favorite_rounded,
+                  size: 20,
+                  color: Colors.redAccent,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

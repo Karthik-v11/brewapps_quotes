@@ -15,7 +15,7 @@ abstract class AuthRemoteDataSource {
   Future<void> resetPassword(String email);
 
   Future<UserModel?> getCurrentUser();
-
+  Future<UserModel> updateProfile({String? name, String? avatarUrl});
   Stream<UserModel?> get onAuthStateChanged;
 }
 
@@ -104,6 +104,31 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel?> getCurrentUser() async {
     final user = supabaseClient.auth.currentUser;
     if (user == null) return null;
+
+    final profile = await _getUserProfile(user.id);
+    return UserModel.fromSupabase(user, profile: profile);
+  }
+
+  @override
+  Future<UserModel> updateProfile({String? name, String? avatarUrl}) async {
+    final user = supabaseClient.auth.currentUser;
+    if (user == null) throw const AuthException('Not authenticated');
+
+    final updates = <String, dynamic>{
+      'id': user.id,
+      if (name != null) 'username': name,
+      if (avatarUrl != null) 'avatar_url': avatarUrl,
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+
+    await supabaseClient.from('profiles').upsert(updates);
+
+    // If name is updated, also update auth metadata for consistency
+    if (name != null) {
+      await supabaseClient.auth.updateUser(
+        UserAttributes(data: {'username': name}),
+      );
+    }
 
     final profile = await _getUserProfile(user.id);
     return UserModel.fromSupabase(user, profile: profile);

@@ -19,6 +19,9 @@ abstract class AuthRepository {
   Future<Either<Failure, Unit>> resetPassword(String email);
 
   Future<Either<Failure, UserEntity?>> getCurrentUser();
-
+  Future<Either<Failure, UserEntity>> updateProfile({
+    String? name,
+    String? avatarUrl,
+  });
   Stream<UserEntity?> get onAuthStateChanged;
 }

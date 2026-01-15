@@ -42,6 +42,14 @@ class AuthPasswordResetRequested extends AuthEvent {
   List<Object> get props => [email];
 }
 
+class AuthUpdateProfileRequested extends AuthEvent {
+  final String? name;
+  final String? avatarUrl;
+  const AuthUpdateProfileRequested({this.name, this.avatarUrl});
+  @override
+  List<Object?> get props => [name, avatarUrl];
+}
+
 class AuthUserChanged extends AuthEvent {
   final UserEntity? user;
   const AuthUserChanged(this.user);
@@ -103,6 +111,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSignUpRequested>(_onAuthSignUpRequested);
     on<AuthLogoutRequested>(_onAuthLogoutRequested);
     on<AuthPasswordResetRequested>(_onAuthPasswordResetRequested);
+    on<AuthUpdateProfileRequested>(_onAuthUpdateProfileRequested);
     on<AuthUserChanged>(_onAuthUserChanged);
 
     _authSubscription = _authRepository.onAuthStateChanged.listen(
@@ -172,6 +181,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     result.fold(
       (failure) => emit(AuthError(failure.message)),
       (_) => emit(AuthPasswordResetSuccess()),
+    );
+  }
+
+  Future<void> _onAuthUpdateProfileRequested(
+    AuthUpdateProfileRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    final result = await _authRepository.updateProfile(
+      name: event.name,
+      avatarUrl: event.avatarUrl,
+    );
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (user) => emit(AuthAuthenticated(user)),
     );
   }
 

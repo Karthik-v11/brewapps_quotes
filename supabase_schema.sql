@@ -10,7 +10,7 @@ create table quotes (
 -- Profiles Table
 create table profiles (
   id uuid references auth.users on delete cascade primary key,
-  username text,
+  username text unique,
   avatar_url text,
   updated_at timestamp with time zone default now()
 );
@@ -30,6 +30,7 @@ create table collections (
   user_id uuid references auth.users on delete cascade not null,
   name text not null,
   description text,
+  is_public boolean default false,
   created_at timestamp with time zone default now()
 );
 
@@ -87,8 +88,8 @@ create policy "Users can delete their own favorites" on favorites
   for delete using (auth.uid() = user_id);
 
 -- Policies for collections
-create policy "Users can view their own collections" on collections
-  for select using (auth.uid() = user_id);
+create policy "Users can view own or public collections" on collections
+  for select using (auth.uid() = user_id OR is_public = true);
 
 create policy "Users can create their own collections" on collections
   for insert with check (auth.uid() = user_id);
@@ -100,12 +101,12 @@ create policy "Users can delete their own collections" on collections
   for delete using (auth.uid() = user_id);
 
 -- Policies for collection_quotes
-create policy "Users can view quotes in their collections" on collection_quotes
+create policy "Users can view quotes in own or public collections" on collection_quotes
   for select using (
     exists (
       select 1 from collections
       where collections.id = collection_quotes.collection_id
-      and collections.user_id = auth.uid()
+      and (collections.user_id = auth.uid() OR collections.is_public = true)
     )
   );
 

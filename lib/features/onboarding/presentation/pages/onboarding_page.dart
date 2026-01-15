@@ -29,44 +29,54 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1C1C1E),
-      body: Stack(
-        children: [
-          PageView(
-            controller: _pageController,
-            onPageChanged: _onPageChanged,
-            children: [
-              _WelcomeScreen(
-                onGetStarted: () => _pageController.animateToPage(
-                  1,
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeInOut,
-                ),
-              ),
-              _DiscoverScreen(
-                onContinue: () => _pageController.animateToPage(
-                  2,
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeInOut,
-                ),
-              ),
-              _ShareScreen(
-                onGetStarted: _navigateToAuth,
-                onSkip: _navigateToAuth,
-              ),
-            ],
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1A1A1A), Color(0xFF0F0F0F)],
           ),
-          // Page Indicators
-          Positioned(
-            bottom: 60,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(3, (index) => _buildIndicator(index)),
+        ),
+        child: Stack(
+          children: [
+            PageView(
+              controller: _pageController,
+              onPageChanged: _onPageChanged,
+              children: [
+                _WelcomeScreen(
+                  onGetStarted: () => _pageController.animateToPage(
+                    1,
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeInOut,
+                  ),
+                ),
+                _DiscoverScreen(
+                  onContinue: () => _pageController.animateToPage(
+                    2,
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeInOut,
+                  ),
+                ),
+                _ShareScreen(
+                  onGetStarted: _navigateToAuth,
+                  onSkip: _navigateToAuth,
+                ),
+              ],
             ),
-          ),
-        ],
+            // Page Indicators
+            Positioned(
+              bottom: 60,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(3, (index) => _buildIndicator(index)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -360,13 +370,16 @@ class _ShareScreen extends StatelessWidget {
           ),
           const SizedBox(height: 60),
           // Text Content
-          const Text(
-            'Save & Share Favorites',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 40,
-              fontWeight: FontWeight.w700,
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: const Text(
+              'Save & Share Favorites',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 40,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -407,13 +420,7 @@ class _ShareScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          TextButton(
-            onPressed: onSkip,
-            child: const Text(
-              'Skip',
-              style: TextStyle(color: Color(0xFF808080), fontSize: 17),
-            ),
-          ),
+
           const SizedBox(height: 70),
         ],
       ),

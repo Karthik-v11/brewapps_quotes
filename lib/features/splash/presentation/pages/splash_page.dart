@@ -18,8 +18,8 @@ class SplashPage extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFF2B2B2B), // Dark brown/charcoal
-                Color(0xFFD4A655), // Warm golden yellow
+                Color(0xFF3700B3), // Darker Deep Purple
+                Color(0xFF651FFF), // Deep Purple Accent
               ],
             ),
           ),
@@ -30,35 +30,30 @@ class SplashPage extends StatelessWidget {
                 children: [
                   // App Icon
                   Container(
-                    width: 120,
-                    height: 120,
+                    width: 140,
+                    height: 140,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFB8A67D).withOpacity(0.6),
                       borderRadius: BorderRadius.circular(28),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
                       ],
                     ),
-                    child: const Center(
-                      child: Text(
-                        '”', // Right double quotation mark (99 style)
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 80,
-                          fontWeight: FontWeight.bold,
-                          height: 1.0,
-                        ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   // App Name
                   const Text(
-                    'QuoteVault',
+                    'Quote Vault',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 42,

@@ -39,138 +39,149 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1C1C1E),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                const SizedBox(height: 60),
-                // Header Section
-                const Text(
-                  '”', // Quotation marks icon
-                  style: TextStyle(
-                    fontSize: 60,
-                    color: Colors.white,
-                    fontFamily: 'Serif',
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Welcome Back',
-                  style: TextStyle(
-                    fontSize: 44,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Log in to your QuoteVault account.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18, color: Color(0xFF999999)),
-                ),
-                const SizedBox(height: 60),
-                // Input Fields
-                AuthTextField(
-                  controller: _emailController,
-                  label: 'Email',
-                  hintText: 'you@example.com',
-                  keyboardType: TextInputType.emailAddress,
-                  suffixIcon: const Icon(
-                    Icons.email_outlined,
-                    color: Color(0xFF6B7280),
-                    size: 24,
-                  ),
-                  validator: (value) => (value == null || !value.contains('@'))
-                      ? 'Invalid email'
-                      : null,
-                ),
-                const SizedBox(height: 24),
-                AuthTextField(
-                  controller: _passwordController,
-                  label: 'Password',
-                  hintText: 'Enter your password',
-                  obscureText: _obscurePassword,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: const Color(0xFF6B7280),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1A1A1A), Color(0xFF0F0F0F)],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  const SizedBox(height: 60),
+                  // Header Section
+                  const Text(
+                    '”', // Quotation marks icon
+                    style: TextStyle(
+                      fontSize: 60,
+                      color: Colors.white,
+                      fontFamily: 'Serif',
                     ),
-                    onPressed: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
                   ),
-                  validator: (value) => (value == null || value.isEmpty)
-                      ? 'Enter password'
-                      : null,
-                ),
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ForgotPasswordPage(),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Welcome Back',
+                    style: TextStyle(
+                      fontSize: 44,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Log in to your QuoteVault account.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 18, color: Color(0xFF999999)),
+                  ),
+                  const SizedBox(height: 60),
+                  // Input Fields
+                  AuthTextField(
+                    controller: _emailController,
+                    label: 'Email',
+                    hintText: 'you@example.com',
+                    keyboardType: TextInputType.emailAddress,
+                    suffixIcon: const Icon(
+                      Icons.email_outlined,
+                      color: Color(0xFF6B7280),
+                      size: 24,
+                    ),
+                    validator: (value) =>
+                        (value == null || !value.contains('@'))
+                        ? 'Invalid email'
+                        : null,
+                  ),
+                  const SizedBox(height: 24),
+                  AuthTextField(
+                    controller: _passwordController,
+                    label: 'Password',
+                    hintText: 'Enter your password',
+                    obscureText: _obscurePassword,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: const Color(0xFF6B7280),
+                      ),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                    validator: (value) => (value == null || value.isEmpty)
+                        ? 'Enter password'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ForgotPasswordPage(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Forgot Password?',
+                        style: TextStyle(color: Color(0xFF888888)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 48),
+                  // Submit Button
+                  BlocBuilder<AuthBloc, AuthState>(
+                    builder: (context, state) {
+                      return SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: TextButton(
+                          onPressed: state is AuthLoading ? null : _onLogin,
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.deepPurple,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(28),
+                            ),
+                          ),
+                          child: state is AuthLoading
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white,
+                                )
+                              : const Text(
+                                  'Log In',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       );
                     },
+                  ),
+                  const SizedBox(height: 24),
+                  // Bottom Link
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const SignUpPage()),
+                      );
+                    },
                     child: const Text(
-                      'Forgot Password?',
-                      style: TextStyle(color: Color(0xFF888888)),
+                      "Don't have an account?",
+                      style: TextStyle(fontSize: 16, color: Color(0xFF888888)),
                     ),
                   ),
-                ),
-                const SizedBox(height: 48),
-                // Submit Button
-                BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    return SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: TextButton(
-                        onPressed: state is AuthLoading ? null : _onLogin,
-                        style: TextButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
-                          ),
-                        ),
-                        child: state is AuthLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : const Text(
-                                'Log In',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 24),
-                // Bottom Link
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const SignUpPage()),
-                    );
-                  },
-                  child: const Text(
-                    "Don't have an account?",
-                    style: TextStyle(fontSize: 16, color: Color(0xFF888888)),
-                  ),
-                ),
-                const SizedBox(height: 40),
-              ],
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
         ),
