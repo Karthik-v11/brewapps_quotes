@@ -62,7 +62,7 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
         child: BlocListener<AuthBloc, AuthState>(
           listener: (context, state) {
-            if (state is AuthSignUpSuccess) {
+            if (state is AuthSignUpSuccess || state is AuthAuthenticated) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text(
